@@ -6,6 +6,17 @@ h2. Installation
 
 Copy the entire /LinkShortener/* directory into your site/modules/ directory then navigate to the modules page in the admin interface and hit the "Search for new modules" button. Choose the LinkShortener from the new modules and click the "Install" button.
 
+*These Manual Steps Are Needed For Now*
+
+* Navigate to the templates page.
+* Edit the LinkShortener template.
+* Edit the Title field bu clicking on the word 'title'.
+* In the modal dialog change the visibility to "Hidden, not shown in editor" and hit save.
+
+(This is a know issue and once I know how to do it via the API this will go away.)
+
+h3. Installation notes...
+
 Installation will create the following templates/template files and fields...
 
 * Field "full_url" which is added to the "LinkShortener" template.
@@ -16,8 +27,16 @@ The "LinkShortener" template cannot have children and can only live under a page
 
 Installation will also create an initial parent page for your short links (just off the root of your site) entitled "Short Links" and using the path /r/. By default this parent will use random 6-character strings for the shortened URL but you can change this by editing the page and setting the "short_url_length" to whatever value you want. The longer the string, the more links can be stored under that parent. 6 characters will give you a maximum of 887,503,681 links.
 
-h2. Creating Short Links
+h2. Creating Short Links...
 
 Navigate to your "Short Links" page in the page tree and hit the "new" button. A new page will be created using the "LinkShortener" template that automatically generates a random short string that is not currently in use under that parent. If you are happy with this (you probably will be) just hit the "Add" button to take you through to the field where you can enter the full URL you want the short link to redirect to. Once you've pasted that it, hit save and you're done.
 
 The short link will now be displayed under the full link field and you can either copy & paste it as needed or hit the "Go!" link to test your short link => full link redirection.
+
+h2. Known Problems
+
+# I don't know how to programmatically set the visibility of the Title field to hidden in the context of the LinkShortener template, leading to an unwanted manual installation hurdle.
+
+h2. License
+
+GPLv2.
