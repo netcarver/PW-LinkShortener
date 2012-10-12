@@ -1,0 +1,23 @@
+h1. LinkShortener module
+
+Provides a simple URL shortening service using PW's native pages feature and a single template-file.
+
+h2. Installation
+
+Copy the entire /LinkShortener/* directory into your site/modules/ directory then navigate to the modules page in the admin interface and hit the "Search for new modules" button. Choose the LinkShortener from the new modules and click the "Install" button.
+
+Installation will create the following templates/template files and fields...
+
+* Field "full_url" which is added to the "LinkShortener" template.
+* Field "short_url_length" which is added to the "LinkShortenerHome" template.
+* Template file "LinkShortener" which handles redirections of incoming short links.
+
+The "LinkShortener" template cannot have children and can only live under a page using the "LinkShortenerHome" template.
+
+Installation will also create an initial parent page for your short links (just off the root of your site) entitled "Short Links" and using the path /r/. By default this parent will use random 6-character strings for the shortened URL but you can change this by editing the page and setting the "short_url_length" to whatever value you want. The longer the string, the more links can be stored under that parent. 6 characters will give you a maximum of about 10,000,000 links.
+
+h2. Creating Short Links
+
+Navigate to your "Short Links" page in the page tree and hit the "new" button. A new page will be created using the "LinkShortener" template that automatically generates a random short string that is not currently in use under that parent. If you are happy with this (you probably will be) just hit the "Add" button to take you through to the field where you can enter the full URL you want the short link to redirect to. Once you've pasted that it, hit save and you're done.
+
+The short link will now be displayed under the full link field and you can either copy & paste it as needed or hit the "Go!" link to test your short link => full link redirection.
