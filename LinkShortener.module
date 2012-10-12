@@ -1,0 +1,240 @@
+<?php
+
+class LinkShortener extends WireData implements Module
+{
+
+	public static function getModuleInfo()
+	{
+		return array(
+			'title'     => 'URL Link Shortener',
+			'version'   => 1,
+			'summary'   => 'Creates short URLs from long ones and handles redirects',
+			'permanent' => false,
+			'singular'  => true,
+			'autoload'  => true,
+			'author'    => 'Netcarver',
+			'priority'  => 50,
+			'requires'  => 'CryptoPPP',
+			);
+	}
+
+
+	/**
+	 * Initialize hooks
+	 */
+	public function init()
+	{
+		$this->addHookAfter( 'Inputfield::render', $this, 'renderShortLink' );
+	}
+
+
+	/**
+	 * Adds a summary of the shortened URL under the long URL input field for copy-n-paste convenience.
+	 **/
+	protected function renderShortLink(HookEvent $event)
+	{
+		if( 'full_link' == $event->object->name && $event->object->value ) {
+	
+			if(isset($_POST['id'])) 
+				$id = (int) $_POST['id']; 
+			elseif(isset($_GET['id'])) 
+				$id = (int) $_GET['id'];
+			else
+				return;
+
+			$page = wire()->pages->get($id); 
+
+			$link = $url = $page->httpUrl;
+			$link = htmlspecialchars( $link, ENT_QUOTES, "utf-8" );
+			$link = __("Your short URL to the above is: ", __FILE__) . "<strong>$link</strong> &#8212; <a href=\"$url\"><span class=\"\">Go!</span></a>";
+			$event->return .= $link;
+		}
+	}
+
+
+	/**
+	 * Automatically create random, short, unused, pagenames for new child pages using the
+	 * URLShortenerHome template.
+	 **/
+	public function ready()
+	{
+		if($this->page->template != 'admin') return;
+
+		$parent_id = $this->input->get->parent_id;
+
+		if( !$parent_id ) return;
+		$parent = wire()->pages->get($parent_id);
+		if($parent->template->name != __CLASS__ . "Home") return;
+
+		// only add our hook if template is admin and there a parent_id GET variable with the value we want
+		$this->addHookBefore('InputfieldPageName::render', $this, 'hookRender');
+	}
+
+
+	public function hookRender(HookEvent $event) 
+	{
+		// if process isn't ProcessPageAdd, exit now
+		if($this->process != 'ProcessPageAdd') return;
+
+		$inputfield = $event->object;
+
+		// if the input already has a populated value (possibly from another hook?), exit now
+		if(strlen($inputfield->attr('value'))) return; 
+
+		$len = $inputfield->parentPage->short_link_length;
+		$name = self::generateUnusedRandomPagename( $inputfield->parentPage, $len ); 
+
+		// if we made it here, populate the value attribute
+		$inputfield->attr('value', $name);  
+	}
+
+
+	/**
+	 * Generates a short, random, pagename that is not already in use by its immediate sibling pages.
+	 *
+	 * A limited number of attempts at pagename creation are allowed before the routine gives up and 
+	 * lets the user define the pagename.
+	 *
+	 * As PW lower-cases the URLs it generates from the pagename we only use lowercase in the generated
+	 * short name.
+	 **/
+	protected static function generateUnusedRandomPagename( $parent, $len = 6 )
+	{
+		$tries = 4;
+		do {
+			$name = CryptoPPP::keyToToken( CryptoPPP::genKeys(1), $len, "abcdfghijkmnpqrstuvwxyz23456789" );
+			$id   = $parent->child("name=$name, include=all")->id;
+			if( 0 == $tries-- ) return ""; // If we can't generate a unique name in reasonable cost, let the user choose.	
+		} while( $id );
+		return $name;
+	}
+
+
+	/**
+ 	 * Installs new fields/fieldgroups/templates/template files used by this module
+	 */
+	public function ___install()
+	{
+		// Create the full_link field...
+		$full_f = $this->fields->get('full_link');
+		if (!$full_f) {
+			$full_f            = new Field();
+			$full_f->type      = $this->modules->get("FieldtypeURL");
+			$full_f->name      = 'full_link';
+			$full_f->size      = 0;
+			$full_f->maxlength = 1024;
+			$full_f->label     = 'The full URL of your link';
+			$full_f->save();
+			$this->message("Added field 'full_link'.");
+		}
+
+		// Create the short_link_length field...
+		$len_f = $this->fields->get('short_link_length');
+		if (!$len_f) {
+			$len_f            = new Field();
+			$len_f->type      = $this->modules->get("FieldtypeInteger");
+			$len_f->name      = 'short_link_length';
+			$len_f->label     = 'The length of the short URLs generated under this page.';
+			$len_f->save();
+			$this->message("Added field 'short_link_length'.");
+		}
+
+		// Create the LinkShortener fieldgroup + template using the full_link field...
+		$ls_fieldgroup = $this->fieldgroups->get(__CLASS__);
+		if (!$ls_fieldgroup) {
+			$ls_fieldgroup = new Fieldgroup();
+			$ls_fieldgroup->name = __CLASS__;
+			$ls_fieldgroup->add( $this->fields->get('title') );
+			$ls_fieldgroup->add( $full_f );
+			$ls_fieldgroup->save();
+
+			// TODO set title field to collapsed hidden in the context of this fieldgroup...
+			$ls_fieldgroup->get('title')->set('collapsed', Inputfield::collapsedHidden); 
+			$ls_fieldgroup->save();
+
+			$this->message("Installed fieldgroup " . __CLASS__);
+		}
+
+		$ls_template = $this->templates->get(__CLASS__);
+		if (!$ls_template) {
+			$ls_template = new Template();
+			$ls_template->name = __CLASS__;
+			$ls_template->fieldgroup = $ls_fieldgroup;
+			$ls_template->set('noChildren', 1);
+			$ls_template->set('slashUrls', 0);
+			$ls_template->save();
+			$this->message("Installed template " . __CLASS__);
+		}
+
+		// Create the LinkShortenerHome fieldgroup + template using the short_link_length + title field...
+		$lsh_fieldgroup = $this->fieldgroups->get(__CLASS__ . "Home");
+		if (!$lsh_fieldgroup) {
+			$lsh_fieldgroup = new Fieldgroup();
+			$lsh_fieldgroup->name = __CLASS__ . "Home";
+			$lsh_fieldgroup->add( $this->fields->get('title') );
+			$lsh_fieldgroup->add( $len_f );
+			$lsh_fieldgroup->save();
+			$this->message("Installed fieldgroup " . __CLASS__ . "Home" );
+		}
+
+		$lsh_template = $this->templates->get(__CLASS__ . "Home");
+		if (!$lsh_template) {
+			$lsh_template = new Template();
+			$lsh_template->name = __CLASS__ . "Home";
+			$lsh_template->fieldgroup = $lsh_fieldgroup;
+			$lsh_template->set('childTemplates', array($ls_template->id) );
+			$lsh_template->set('slashUrls', 0);
+			$lsh_template->save();
+			$this->message("Installed template " . __CLASS__ . "Home" );
+		}
+
+		// TODO Set the parent template for short-link pages...
+//		$ls_template->set('parentTemplates', array($lsh_template->id) );
+//		$ls_template->save();
+
+		// Add the template file to the Home template...
+		$basename = __CLASS__ . ".php";
+		$src = $this->config->paths->LinkShortener . $basename;
+		$dst = $this->config->paths->templates . $basename;
+		if (file_exists($dst))
+			$this->message("Template file $basename already present at $dst.");
+		else {
+			if(@copy($src, $dst)) {
+				$this->message("Installed template file $basename in $dst");
+			}	else {
+				$this->error("Templates directory not writable? Unable to auto-install the $basename template file.");
+				$this->error("To complete the installation please copy $basename from $src to $dst");
+			}
+		}
+
+		// Create the "Short Links" page using the LinkShortenerHome template.
+		if (!wire()->pages->get('/')->child("name=r, include=all")->id) {
+			$page = new Page($lsh_template);
+			$page->parent = '/';
+			$page->name = "r";
+			$page->title = "Short Links";
+			$page->short_link_length = 3;
+			$page->addStatus(Page::statusHidden);
+			$page->save();
+			$this->message("Installed page $page->path");
+		}
+	}
+
+
+
+	/**
+	 *	No uninstall actions are taken as the user may have many pages of short links in the DB
+	 *	that might still need to work even if the module is uninstalled.
+	 *
+	 *	To fully remove...
+	 *	1) Delete all pages+subpages using the LinkShortenerHome template
+	 *	2) Delete the LinkShortener and LinkShortenerHome templates
+	 *	3) Delete the full_url and short_url_length fields
+	 */
+	public function ___uninstall()
+	{
+	}
+
+
+}
+
