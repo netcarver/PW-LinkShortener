@@ -14,7 +14,7 @@ Installation will create the following templates/template files and fields...
 
 The "LinkShortener" template cannot have children and can only live under a page using the "LinkShortenerHome" template.
 
-Installation will also create an initial parent page for your short links (just off the root of your site) entitled "Short Links" and using the path /r/. By default this parent will use random 6-character strings for the shortened URL but you can change this by editing the page and setting the "short_url_length" to whatever value you want. The longer the string, the more links can be stored under that parent. 6 characters will give you a maximum of about 10,000,000 links.
+Installation will also create an initial parent page for your short links (just off the root of your site) entitled "Short Links" and using the path /r/. By default this parent will use random 6-character strings for the shortened URL but you can change this by editing the page and setting the "short_url_length" to whatever value you want. The longer the string, the more links can be stored under that parent. 6 characters will give you a maximum of 887,503,681 links.
 
 h2. Creating Short Links
 
