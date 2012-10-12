@@ -213,7 +213,7 @@ class LinkShortener extends WireData implements Module
 			$page->parent = '/';
 			$page->name = "r";
 			$page->title = "Short Links";
-			$page->short_link_length = 3;
+			$page->short_link_length = 6;
 			$page->addStatus(Page::statusHidden);
 			$page->save();
 			$this->message("Installed page $page->path");
