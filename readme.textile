@@ -1,4 +1,4 @@
-h1. LinkShortener module
+h1. LinkShortener Module For ProcessWire
 
 Provides a simple URL shortening service using PW's native pages feature and a single template-file.
 
@@ -6,7 +6,7 @@ h2. Installation
 
 Copy the entire /LinkShortener/* directory into your site/modules/ directory then navigate to the modules page in the admin interface and hit the "Search for new modules" button. Choose the LinkShortener from the new modules and click the "Install" button.
 
-*These Manual Steps Are Needed For Now*
+*These Manual Steps Are Also Needed For Now*
 
 * Navigate to the templates page.
 * Edit the LinkShortener template.
@@ -15,7 +15,7 @@ Copy the entire /LinkShortener/* directory into your site/modules/ directory the
 
 (This is a know issue and once I know how to do it via the API this will go away.)
 
-h3. Installation notes...
+h3. Installation notes
 
 Installation will create the following templates/template files and fields...
 
@@ -39,7 +39,7 @@ The generated links use a 31 character alphabet so the number of links vs length
 | 7 |>. 27,512,614,111 |
 | 8 |>. 852,891,037,441 |
 
-h2. Creating Short Links...
+h2. Creating Short Links
 
 Navigate to your "Short Links" page in the page tree and hit the "new" button. A new page will be created using the "LinkShortener" template that automatically generates a random short string that is not currently in use under that parent. If you are happy with this (you probably will be) just hit the "Add" button to take you through to the field where you can enter the full URL you want the short link to redirect to. Once you've pasted that it, hit save and you're done.
 
