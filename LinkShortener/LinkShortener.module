@@ -170,13 +170,10 @@ class LinkShortener extends WireData implements Module
 			$this->message("Installed template " . __CLASS__);
 		}
 
-			// TODO set title field to collapsed hidden in the context of this fieldgroup...
-			/* $ls_fieldgroup->getField('title', true)->set('collapsed', Inputfield::collapsedHidden); */ 
-			/* $ls_fieldgroup->save(); */	
-$title = $ls_fieldgroup->get('title', true); 
-$title->collapsed = Inputfield::collapsedHidden;
-wire('fields')->saveFieldgroupContext($title, $ls_fieldgroup); 
-
+		// Set title field to collapsed hidden in the context of the LinkShortener fieldgroup...
+		$title = $ls_fieldgroup->getField('title', true); 
+		$title->collapsed = Inputfield::collapsedHidden;
+		wire('fields')->saveFieldgroupContext($title, $ls_fieldgroup); 
 
 		// Create the LinkShortenerHome fieldgroup + template using the short_link_length + title field...
 		$lsh_fieldgroup = $this->fieldgroups->get(__CLASS__ . "Home");
