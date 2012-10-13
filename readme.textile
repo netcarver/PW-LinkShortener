@@ -10,7 +10,7 @@ Copy the entire /LinkShortener/* directory into your site/modules/ directory the
 
 * Navigate to the templates page.
 * Edit the LinkShortener template.
-* Edit the Title field bu clicking on the word 'title'.
+* Edit the Title field by clicking on the word 'title'.
 * In the modal dialog change the visibility to "Hidden, not shown in editor" and hit save.
 
 (This is a known issue and once I know how to do it via the API this will go away.)
