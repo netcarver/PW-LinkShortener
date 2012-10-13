@@ -7,7 +7,7 @@ class LinkShortener extends WireData implements Module
 	{
 		return array(
 			'title'     => 'URL Link Shortener',
-			'version'   => 2,
+			'version'   => 3,
 			'summary'   => 'Creates short URLs from long ones and handles redirects',
 			'permanent' => false,
 			'singular'  => true,
