@@ -83,8 +83,8 @@ class LinkShortener extends WireData implements Module
 		if(strlen($inputfield->attr('value'))) return; 
 
 		$len   = $inputfield->parentPage->short_link_length;
-		$ext   = false;
-		$tries = 4;
+		$ext   = $inputfield->parentPage->short_link_ext;
+		$tries = $inputfield->parentPage->short_link_tries;
 		$name = self::generateUnusedRandomPagename( $inputfield->parentPage, $len, $ext, $tries );
 
 		// if we made it here, populate the value attribute
@@ -148,6 +148,29 @@ class LinkShortener extends WireData implements Module
 			$this->message("Added field 'short_link_length'.");
 		}
 
+		// Create the short_link_try field (controls how many attempts at generating a unique pagename are allowed)...
+		$try_f = $this->fields->get('short_link_tries');
+		if (!$try_f) {
+			$try_f            = new Field();
+			$try_f->type      = $this->modules->get("FieldtypeInteger");
+			$try_f->name      = 'short_link_tries';
+			$try_f->label     = 'How many attempts at creating an unused page name are allowed before giving up?';
+			$try_f->note      = 'This will only practically come into play if the set of page names is heavily occupied';
+			$try_f->save();
+			$this->message("Added field 'short_link_tries'.");
+		}
+
+		// Create the short_link_ext field (controls name length extension if generating page name fails)...
+		$ext_f = $this->fields->get('short_link_ext');
+		if (!$ext_f) {
+			$ext_f            = new Field();
+			$ext_f->type      = $this->modules->get("FieldtypeCheckbox");
+			$ext_f->name      = 'short_link_ext';
+			$ext_f->label     = 'Allow short links to exceed the link length if we cannot find an unused page name within the allowed attempts limit?';
+			$ext_f->save();
+			$this->message("Added field 'short_link_ext'.");
+		}
+
 		// Create the LinkShortener fieldgroup + template using the full_link field...
 		$ls_fieldgroup = $this->fieldgroups->get(__CLASS__);
 		if (!$ls_fieldgroup) {
@@ -185,6 +208,8 @@ wire('fields')->saveFieldgroupContext($title, $ls_fieldgroup);
 			$lsh_fieldgroup->name = __CLASS__ . "Home";
 			$lsh_fieldgroup->add( $this->fields->get('title') );
 			$lsh_fieldgroup->add( $len_f );
+			$lsh_fieldgroup->add( $try_f );
+			$lsh_fieldgroup->add( $ext_f );
 			$lsh_fieldgroup->save();
 			$this->message("Installed fieldgroup " . __CLASS__ . "Home" );
 		}
