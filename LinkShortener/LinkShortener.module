@@ -7,7 +7,7 @@ class LinkShortener extends WireData implements Module
 	{
 		return array(
 			'title'     => 'URL Link Shortener',
-			'version'   => 1,
+			'version'   => 2,
 			'summary'   => 'Creates short URLs from long ones and handles redirects',
 			'permanent' => false,
 			'singular'  => true,
@@ -45,11 +45,12 @@ class LinkShortener extends WireData implements Module
 			$page = wire()->pages->get($id); 
 
 			$link = $url = $page->httpUrl;
-			$link = htmlspecialchars( $link, ENT_QUOTES, "utf-8" );
+			$link = htmlspecialchars( $link, ENT_QUOTES, "UTF-8" );
 			$link = __("Your short URL to the above is: ", __FILE__) . "<strong>$link</strong> &#8212; <a href=\"$url\"><span class=\"\">Go!</span></a>";
 			$event->return .= $link;
 		}
 	}
+
 
 
 	/**
@@ -81,8 +82,10 @@ class LinkShortener extends WireData implements Module
 		// if the input already has a populated value (possibly from another hook?), exit now
 		if(strlen($inputfield->attr('value'))) return; 
 
-		$len = $inputfield->parentPage->short_link_length;
-		$name = self::generateUnusedRandomPagename( $inputfield->parentPage, $len ); 
+		$len   = $inputfield->parentPage->short_link_length;
+		$ext   = false;
+		$tries = 4;
+		$name = self::generateUnusedRandomPagename( $inputfield->parentPage, $len, $ext, $tries );
 
 		// if we made it here, populate the value attribute
 		$inputfield->attr('value', $name);  
@@ -98,13 +101,19 @@ class LinkShortener extends WireData implements Module
 	 * As PW lower-cases the URLs it generates from the pagename we only use lowercase in the generated
 	 * short name.
 	 **/
-	protected static function generateUnusedRandomPagename( $parent, $len = 6 )
+	protected static function generateUnusedRandomPagename( $parent, $len, $extend, $tries )
 	{
-		$tries = 4;
 		do {
 			$name = CryptoPPP::keyToToken( CryptoPPP::genKeys(1), $len, "abcdfghijkmnpqrstuvwxyz23456789" );
 			$id   = $parent->child("name=$name, include=all")->id;
-			if( 0 == $tries-- ) return ""; // If we can't generate a unique name in reasonable cost, let the user choose.	
+			if( 0 == $tries-- ) {
+				if( $extend ) 
+					// If extension allowed, move to a longer url but don't allow indefinite extension or tries...
+					return self::generateUnusedRandomPagename( $parent, $len+1, false, 4 );
+				else
+					// If we can't generate a unique name in reasonable cost and no extension allowed, let the user choose.
+					return '';
+			}
 		} while( $id );
 		return $name;
 	}
@@ -147,11 +156,6 @@ class LinkShortener extends WireData implements Module
 			$ls_fieldgroup->add( $this->fields->get('title') );
 			$ls_fieldgroup->add( $full_f );
 			$ls_fieldgroup->save();
-
-			// TODO set title field to collapsed hidden in the context of this fieldgroup...
-			$ls_fieldgroup->get('title')->set('collapsed', Inputfield::collapsedHidden); 
-			$ls_fieldgroup->save();
-
 			$this->message("Installed fieldgroup " . __CLASS__);
 		}
 
@@ -165,6 +169,14 @@ class LinkShortener extends WireData implements Module
 			$ls_template->save();
 			$this->message("Installed template " . __CLASS__);
 		}
+
+			// TODO set title field to collapsed hidden in the context of this fieldgroup...
+			/* $ls_fieldgroup->getField('title', true)->set('collapsed', Inputfield::collapsedHidden); */ 
+			/* $ls_fieldgroup->save(); */	
+$title = $ls_fieldgroup->get('title', true); 
+$title->collapsed = Inputfield::collapsedHidden;
+wire('fields')->saveFieldgroupContext($title, $ls_fieldgroup); 
+
 
 		// Create the LinkShortenerHome fieldgroup + template using the short_link_length + title field...
 		$lsh_fieldgroup = $this->fieldgroups->get(__CLASS__ . "Home");
@@ -188,9 +200,9 @@ class LinkShortener extends WireData implements Module
 			$this->message("Installed template " . __CLASS__ . "Home" );
 		}
 
-		// TODO Set the parent template for short-link pages...
-//		$ls_template->set('parentTemplates', array($lsh_template->id) );
-//		$ls_template->save();
+		// Set the parent template for short-link pages...
+		$ls_template->set('parentTemplates', array($lsh_template->id) );
+		$ls_template->save();
 
 		// Add the template file to the Home template...
 		$basename = __CLASS__ . ".php";
@@ -229,12 +241,43 @@ class LinkShortener extends WireData implements Module
 	 *	To fully remove...
 	 *	1) Delete all pages+subpages using the LinkShortenerHome template
 	 *	2) Delete the LinkShortener and LinkShortenerHome templates
-	 *	3) Delete the full_url and short_url_length fields
+	 *	3) Delete the full_url and short_link_length fields
 	 */
 	public function ___uninstall()
 	{
-	}
+		$del = $this->pages->find("template=".__CLASS__."Home, include=all");
+		if (!empty($del)) {
+			foreach ($del as $p) {
+				$this->message("Pruned branch ".$p->name);
+				$this->pages->delete($p, true);
+			}
+		}
 
+		$lsh = $this->templates->get(__CLASS__."Home");
+		$ls  = $this->templates->get(__CLASS__);
+		if ($lsh->id) {
+			$this->templates->delete($lsh);
+			$this->fieldgroups->delete($lsh->fieldgroup);
+			$this->message("Removed template & fieldgroup: ".__CLASS__."Home");
+		}
+		if ($ls->id)  {
+			$this->templates->delete($ls);
+			$this->fieldgroups->delete($ls->fieldgroup);
+			$this->message("Removed template & fieldgroup: ".__CLASS__);
+		}
+
+		$f = $this->fields->get('full_link');
+		if( $f->id ) {
+			$this->fields->delete( $f );
+			$this->message("Removed field: full_link");
+		}
+
+		$f = $this->fields->get('short_link_length');
+		if( $f->id ) {
+			$this->fields->delete( $f );
+			$this->message("Removed field: short_link_length");
+		}
+	}
 
 }
 
