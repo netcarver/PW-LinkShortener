@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * LinkShortener
+ *
+ * Allows the addition of a URL shortener to ProcessWire using mostly existing PW functionality.
+ *
+ * You can create as many bins for these short links (which are just PW pages) that uses the LinkShortenerHome
+ * template as you need and each bin can control the features of the stored short links. Anytime you create a new
+ * page in any of these bins, it will automatically be named with a short, random, string that is not already
+ * in use. You get the chance to review this short string before adding the full URL and saving the page.
+ *
+ * Once the page is saved any visit to the short link will be redirected to the full link.
+ **/
 class LinkShortener extends WireData implements Module
 {
 
@@ -54,7 +66,7 @@ class LinkShortener extends WireData implements Module
 
 
 	/**
-	 * Automatically create random, short, unused, pagenames for new child pages using the
+	 * Automate the creation of random, short, unused, pagenames for new child pages of anything using the
 	 * URLShortenerHome template.
 	 **/
 	public function ready()
@@ -93,10 +105,10 @@ class LinkShortener extends WireData implements Module
 
 
 	/**
-	 * Generates a short, random, pagename that is not already in use by its immediate sibling pages.
+	 * Attempts to generates a short, random, name for a new page that is not already in use by its immediate sibling pages.
 	 *
-	 * A limited number of attempts at pagename creation are allowed before the routine gives up and 
-	 * lets the user define the pagename.
+	 * A limited number of attempts at pagename creation at a fixed length are allowed before the routine either gives up and 
+	 * lets the user define the pagename or tries using a pagename that is one character longer.
 	 *
 	 * As PW lower-cases the URLs it generates from the pagename we only use lowercase in the generated
 	 * short name.
