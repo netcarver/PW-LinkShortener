@@ -235,6 +235,9 @@ wire('fields')->saveFieldgroupContext($title, $ls_fieldgroup);
 
 
 	/**
+	 * Currently uninstalls all its added fields/groups/templates and pages whilst the install
+	 * routine is debugged.
+	 * ========================================================================================
 	 *	No uninstall actions are taken as the user may have many pages of short links in the DB
 	 *	that might still need to work even if the module is uninstalled.
 	 *
