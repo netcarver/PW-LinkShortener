@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * LinkShortener
+ *
+ * Allows the addition of a URL shortener to ProcessWire using mostly existing PW functionality.
+ *
+ * You can create as many bins for these short links (which are just PW pages) that uses the LinkShortenerHome
+ * template as you need and each bin can control the features of the stored short links. Anytime you create a new
+ * page in any of these bins, it will automatically be named with a short, random, string that is not already
+ * in use. You get the chance to review this short string before adding the full URL and saving the page.
+ *
+ * Once the page is saved any visit to the short link will be redirected to the full link.
+ **/
 class LinkShortener extends WireData implements Module
 {
 
@@ -7,7 +19,7 @@ class LinkShortener extends WireData implements Module
 	{
 		return array(
 			'title'     => 'URL Link Shortener',
-			'version'   => 2,
+			'version'   => 4,
 			'summary'   => 'Creates short URLs from long ones and handles redirects',
 			'permanent' => false,
 			'singular'  => true,
@@ -54,7 +66,7 @@ class LinkShortener extends WireData implements Module
 
 
 	/**
-	 * Automatically create random, short, unused, pagenames for new child pages using the
+	 * Automate the creation of random, short, unused, pagenames for new child pages of anything using the
 	 * URLShortenerHome template.
 	 **/
 	public function ready()
@@ -93,10 +105,10 @@ class LinkShortener extends WireData implements Module
 
 
 	/**
-	 * Generates a short, random, pagename that is not already in use by its immediate sibling pages.
+	 * Attempts to generates a short, random, name for a new page that is not already in use by its immediate sibling pages.
 	 *
-	 * A limited number of attempts at pagename creation are allowed before the routine gives up and 
-	 * lets the user define the pagename.
+	 * A limited number of attempts at pagename creation at a fixed length are allowed before the routine either gives up and 
+	 * lets the user define the pagename or tries using a pagename that is one character longer.
 	 *
 	 * As PW lower-cases the URLs it generates from the pagename we only use lowercase in the generated
 	 * short name.
@@ -193,13 +205,10 @@ class LinkShortener extends WireData implements Module
 			$this->message("Installed template " . __CLASS__);
 		}
 
-			// TODO set title field to collapsed hidden in the context of this fieldgroup...
-			/* $ls_fieldgroup->getField('title', true)->set('collapsed', Inputfield::collapsedHidden); */ 
-			/* $ls_fieldgroup->save(); */	
-$title = $ls_fieldgroup->get('title', true); 
-$title->collapsed = Inputfield::collapsedHidden;
-wire('fields')->saveFieldgroupContext($title, $ls_fieldgroup); 
-
+		// Set title field to collapsed hidden in the context of the LinkShortener fieldgroup...
+		$title = $ls_fieldgroup->getField('title', true); 
+		$title->collapsed = Inputfield::collapsedHidden;
+		wire('fields')->saveFieldgroupContext($title, $ls_fieldgroup); 
 
 		// Create the LinkShortenerHome fieldgroup + template using the short_link_length + title field...
 		$lsh_fieldgroup = $this->fieldgroups->get(__CLASS__ . "Home");
@@ -260,19 +269,24 @@ wire('fields')->saveFieldgroupContext($title, $ls_fieldgroup);
 
 
 	/**
-	 * Currently uninstalls all its added fields/groups/templates and pages whilst the install
-	 * routine is debugged.
-	 * ========================================================================================
 	 *	No uninstall actions are taken as the user may have many pages of short links in the DB
 	 *	that might still need to work even if the module is uninstalled.
 	 *
-	 *	To fully remove...
+	 *  If you wish to remove the module, all the templates & fields it created *and* all your
+	 *  short links then you can either do it manually or automatically.
+	 *
+	 *	To fully remove manually...
 	 *	1) Delete all pages+subpages using the LinkShortenerHome template
 	 *	2) Delete the LinkShortener and LinkShortenerHome templates
 	 *	3) Delete the full_url and short_link_length fields
+	 *	4) Delete the LinkShortener.php file from site/templates
+	 *
+	 *	To fully remove automatically you need to remove the lines marked XXXX and YYYY from the following
+	 *	method before you uninstall the module from the modules page.
 	 */
 	public function ___uninstall()
 	{
+		/* XXXX
 		$del = $this->pages->find("template=".__CLASS__."Home, include=all");
 		if (!empty($del)) {
 			foreach ($del as $p) {
@@ -280,6 +294,10 @@ wire('fields')->saveFieldgroupContext($title, $ls_fieldgroup);
 				$this->pages->delete($p, true);
 			}
 		}
+
+		$basename = __CLASS__ . ".php";
+		$dst = $this->config->paths->templates . $basename;
+		@unlink($dst);
 
 		$lsh = $this->templates->get(__CLASS__."Home");
 		$ls  = $this->templates->get(__CLASS__);
@@ -304,7 +322,8 @@ wire('fields')->saveFieldgroupContext($title, $ls_fieldgroup);
 		if( $f->id ) {
 			$this->fields->delete( $f );
 			$this->message("Removed field: short_link_length");
-		}
+		} 
+		YYYY */
 	}
 
 }
