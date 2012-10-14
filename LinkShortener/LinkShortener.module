@@ -247,45 +247,58 @@ class LinkShortener extends WireData implements Module
 	 *	No uninstall actions are taken as the user may have many pages of short links in the DB
 	 *	that might still need to work even if the module is uninstalled.
 	 *
-	 *	To fully remove...
+	 *  If you wish to remove the module, all the templates & fields it created *and* all your
+	 *  short links then you can either do it manually or automatically.
+	 *
+	 *	To fully remove manually...
 	 *	1) Delete all pages+subpages using the LinkShortenerHome template
 	 *	2) Delete the LinkShortener and LinkShortenerHome templates
 	 *	3) Delete the full_url and short_link_length fields
+	 *	4) Delete the LinkShortener.php file from site/templates
+	 *
+	 *	To fully remove automatically you need to remove the lines marked XXXX and YYYY from the following
+	 *	method before you uninstall the module from the modules page.
 	 */
 	public function ___uninstall()
 	{
-		/* $del = $this->pages->find("template=".__CLASS__."Home, include=all"); */
-		/* if (!empty($del)) { */
-		/* 	foreach ($del as $p) { */
-		/* 		$this->message("Pruned branch ".$p->name); */
-		/* 		$this->pages->delete($p, true); */
-		/* 	} */
-		/* } */
+		/* XXXX
+		$del = $this->pages->find("template=".__CLASS__."Home, include=all");
+		if (!empty($del)) {
+			foreach ($del as $p) {
+				$this->message("Pruned branch ".$p->name);
+				$this->pages->delete($p, true);
+			}
+		}
 
-		/* $lsh = $this->templates->get(__CLASS__."Home"); */
-		/* $ls  = $this->templates->get(__CLASS__); */
-		/* if ($lsh->id) { */
-		/* 	$this->templates->delete($lsh); */
-		/* 	$this->fieldgroups->delete($lsh->fieldgroup); */
-		/* 	$this->message("Removed template & fieldgroup: ".__CLASS__."Home"); */
-		/* } */
-		/* if ($ls->id)  { */
-		/* 	$this->templates->delete($ls); */
-		/* 	$this->fieldgroups->delete($ls->fieldgroup); */
-		/* 	$this->message("Removed template & fieldgroup: ".__CLASS__); */
-		/* } */
+		$basename = __CLASS__ . ".php";
+		$dst = $this->config->paths->templates . $basename;
+		@unlink($dst);
 
-		/* $f = $this->fields->get('full_link'); */
-		/* if( $f->id ) { */
-		/* 	$this->fields->delete( $f ); */
-		/* 	$this->message("Removed field: full_link"); */
-		/* } */
+		$lsh = $this->templates->get(__CLASS__."Home");
+		$ls  = $this->templates->get(__CLASS__);
+		if ($lsh->id) {
+			$this->templates->delete($lsh);
+			$this->fieldgroups->delete($lsh->fieldgroup);
+			$this->message("Removed template & fieldgroup: ".__CLASS__."Home");
+		}
+		if ($ls->id)  {
+			$this->templates->delete($ls);
+			$this->fieldgroups->delete($ls->fieldgroup);
+			$this->message("Removed template & fieldgroup: ".__CLASS__);
+		}
 
-		/* $f = $this->fields->get('short_link_length'); */
-		/* if( $f->id ) { */
-		/* 	$this->fields->delete( $f ); */
-		/* 	$this->message("Removed field: short_link_length"); */
-		/* } */
+		$f = $this->fields->get('full_link');
+		if( $f->id ) {
+			$this->fields->delete( $f );
+			$this->message("Removed field: full_link");
+		}
+
+		$f = $this->fields->get('short_link_length');
+		if( $f->id ) {
+			$this->fields->delete( $f );
+			$this->message("Removed field: short_link_length");
+		} 
+		YYYY */
 	}
 
 }

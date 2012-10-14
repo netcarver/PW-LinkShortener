@@ -36,6 +36,20 @@ Navigate to your "Short Links" page in the page tree and hit the "new" button. A
 
 The short link will now be displayed under the full link field and you can either copy & paste it as needed or hit the "Go!" link to test your short link => full link redirection.
 
+h2. Uninstalling The Link Shortener
+
+You can safely uninstall the module and any links that you created will still work.
+
+If you wish to remove the module, its supporting elements _and_ the links you created using it then there are two ways to do this...
+
+# By editing the module code prior to uninstall and removing the two comment lines marked XXXX and YYYY prior to uninstalling the module (search for those strings and you'll find them.)
+# By manually removing things...
+## Delete all pages using the LinkShortenerHome template and then delete them from the trash
+## Delete the LinkShortener and LinkShortenerHome templates
+## Delete the full_url and short_link_length fields
+## Delete the LinkShortener.php file from site/templates
+
+
 h2. License
 
 GPLv2.
