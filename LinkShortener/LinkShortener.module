@@ -97,6 +97,10 @@ class LinkShortener extends WireData implements Module
 		$len   = $inputfield->parentPage->short_link_length;
 		$ext   = $inputfield->parentPage->short_link_ext;
 		$tries = $inputfield->parentPage->short_link_tries;
+
+		if (!$len) $len = 6;
+		if (!$tries) $tries = 16;
+		if (!isset($ext)) $ext = true;
 		$name = self::generateUnusedRandomPagename( $inputfield->parentPage, $len, $ext, $tries );
 
 		// if we made it here, populate the value attribute
@@ -145,6 +149,7 @@ class LinkShortener extends WireData implements Module
 			$full_f->size      = 0;
 			$full_f->maxlength = 1024;
 			$full_f->label     = 'The full URL of your link';
+			$full_f->required  = 1;
 			$full_f->save();
 			$this->message("Added field 'full_link'.");
 		}
@@ -156,6 +161,7 @@ class LinkShortener extends WireData implements Module
 			$len_f->type      = $this->modules->get("FieldtypeInteger");
 			$len_f->name      = 'short_link_length';
 			$len_f->label     = 'The length of the short URLs generated under this page.';
+			$len_f->required  = 1;
 			$len_f->save();
 			$this->message("Added field 'short_link_length'.");
 		}
@@ -166,8 +172,9 @@ class LinkShortener extends WireData implements Module
 			$try_f            = new Field();
 			$try_f->type      = $this->modules->get("FieldtypeInteger");
 			$try_f->name      = 'short_link_tries';
-			$try_f->label     = 'How many attempts at creating an unused page name are allowed before giving up?';
-			$try_f->note      = 'This will only practically come into play if the set of page names is heavily occupied';
+			$try_f->required  = 1;
+			$try_f->label     = 'How many attempts at creating a name are allowed before giving up (and possibly trying a longer name)?';
+			$try_f->notes     = 'This will only practically come into play if the set of page names is heavily occupied';
 			$try_f->save();
 			$this->message("Added field 'short_link_tries'.");
 		}
@@ -177,8 +184,10 @@ class LinkShortener extends WireData implements Module
 		if (!$ext_f) {
 			$ext_f            = new Field();
 			$ext_f->type      = $this->modules->get("FieldtypeCheckbox");
+			$ext_f->label     = 'Extend Length?';
 			$ext_f->name      = 'short_link_ext';
-			$ext_f->label     = 'Allow short links to exceed the link length if we cannot find an unused page name within the allowed attempts limit?';
+			$ext_f->description = 'Allow short links to exceed the link length if we cannot find an unused page name within the allowed attempts limit?';
+			$ext_f->required  = 1;
 			$ext_f->save();
 			$this->message("Added field 'short_link_ext'.");
 		}
@@ -260,6 +269,8 @@ class LinkShortener extends WireData implements Module
 			$page->name = "r";
 			$page->title = "Short Links";
 			$page->short_link_length = 6;
+			$page->short_link_tries  = 16;
+			$page->short_link_ext = 1;
 			$page->addStatus(Page::statusHidden);
 			$page->save();
 			$this->message("Installed page $page->path");
@@ -319,6 +330,18 @@ class LinkShortener extends WireData implements Module
 		}
 
 		$f = $this->fields->get('short_link_length');
+		if( $f->id ) {
+			$this->fields->delete( $f );
+			$this->message("Removed field: short_link_length");
+		}
+
+		$f = $this->fields->get('short_link_tries');
+		if( $f->id ) {
+			$this->fields->delete( $f );
+			$this->message("Removed field: short_link_length");
+		}
+
+		$f = $this->fields->get('short_link_ext');
 		if( $f->id ) {
 			$this->fields->delete( $f );
 			$this->message("Removed field: short_link_length");
