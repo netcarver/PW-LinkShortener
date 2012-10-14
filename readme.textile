@@ -46,7 +46,7 @@ If you wish to remove the module, its supporting elements _and_ the links you cr
 # By manually removing things...
 ## Delete all pages using the LinkShortenerHome template and then delete them from the trash
 ## Delete the LinkShortener and LinkShortenerHome templates
-## Delete the full_url and short_link_length fields
+## Delete the full_url, short_link_tries, short_link_ext and short_link_length fields
 ## Delete the LinkShortener.php file from site/templates
 
 
