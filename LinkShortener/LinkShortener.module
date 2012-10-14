@@ -338,13 +338,13 @@ class LinkShortener extends WireData implements Module
 		$f = $this->fields->get('short_link_tries');
 		if( $f->id ) {
 			$this->fields->delete( $f );
-			$this->message("Removed field: short_link_length");
+			$this->message("Removed field: short_link_tries");
 		}
 
 		$f = $this->fields->get('short_link_ext');
 		if( $f->id ) {
 			$this->fields->delete( $f );
-			$this->message("Removed field: short_link_length");
+			$this->message("Removed field: short_link_ext");
 		}
 		YYYY */
 	}
