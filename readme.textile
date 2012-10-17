@@ -30,11 +30,19 @@ The generated links use a 31 character alphabet so the number of links vs length
 | 7 |>. 27,512,614,111 |
 | 8 |>. 852,891,037,441 |
 
-h2. Creating Short Links
+h2. Creating Short Links Via PW's Admin Interface
 
 Navigate to your "Short Links" page in the page tree and hit the "new" button. A new page will be created using the "LinkShortener" template that automatically generates a random short string that is not currently in use under that parent. If you are happy with this (you probably will be) just hit the "Add" button to take you through to the field where you can enter the full URL you want the short link to redirect to. Once you've pasted that it, hit save and you're done.
 
 The short link will now be displayed under the full link field and you can either copy & paste it as needed or hit the "Go!" link to test your short link => full link redirection.
+
+h2. Creating Short Links Via API
+
+You can use the @LinkShortener::addNewLink()@ API call to programmatically install a new short link into your PW installation. Check the tests/api.php file for a concrete example.
+
+bc.. $full = 'http://www.howtoforge.com/pfsense-squid-squidguard-traffic-shaping-tutorial';
+$short1 = LinkShortener::addNewLink( $full );            // Automatically create and name a short link to $full in the first shortlink bin. 
+$short2 = LinkShortener::addNewLink( $full, 1138, 'x' ); // Create a shortlink called 'x' in the bin with id 1138
 
 h2. Uninstalling The Link Shortener
 
