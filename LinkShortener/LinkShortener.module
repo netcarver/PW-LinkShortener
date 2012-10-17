@@ -12,7 +12,7 @@
  *
  * Once the page is saved any visit to the short link will be redirected to the full link.
  **/
-class LinkShortener extends WireData implements Module
+class LinkShortener extends WireData implements Module, ConfigurableModule
 {
 
 	public static function getModuleInfo()
@@ -35,7 +35,8 @@ class LinkShortener extends WireData implements Module
 	 */
 	public function init()
 	{
-		$this->addHookAfter( 'Inputfield::render', $this, 'renderShortLink' );
+		$this->addHookAfter(  'Inputfield::render', $this, 'renderShortLink' );
+		$this->addHookBefore( 'Inputfield::render', $this, 'populateProcessRedirectsFromField' );
 	}
 
 
@@ -59,6 +60,23 @@ class LinkShortener extends WireData implements Module
 			$link = htmlspecialchars( $link, ENT_QUOTES, "UTF-8" );
 			$link = __("Your short URL to the above is: ", __FILE__) . "<strong>$link</strong> &#8212; <a href=\"$url\"><span class=\"\">Go!</span></a>";
 			$event->return .= $link;
+		}
+	}
+
+
+
+	/**
+	 * Provide random string to the ProcessRedirects module's redirect_from field if integration is enabled...
+	 **/
+	protected function populateProcessRedirectsFromField(HookEvent $event)
+	{
+		if( 'ProcessRedirects' == $this->process && 
+			'redirect_from'    == $event->object->name && 
+			!$event->object->value &&
+			$this->ls_process_redirects_len
+		) {
+			$len = $this->ls_process_redirects_len;
+			$event->object->value = self::generateUnusedRandomPagename( wire()->pages->get('/') , $len, false, 16 );
 		}
 	}
 
@@ -367,6 +385,7 @@ class LinkShortener extends WireData implements Module
 	public function ___uninstall()
 	{
 		/* XXXX
+		YYYY */
 		$del = $this->pages->find("template=".__CLASS__."Home, include=all");
 		if (!empty($del)) {
 			foreach ($del as $p) {
@@ -415,8 +434,20 @@ class LinkShortener extends WireData implements Module
 			$this->fields->delete( $f );
 			$this->message("Removed field: short_link_ext");
 		}
-		YYYY */
 	}
 
+
+	public static function getModuleConfigInputfields(array $data)
+	{
+		$inputfields = new InputfieldWrapper();
+        $f = wire('modules')->get('InputfieldInteger');
+        $f->name = 'ls_process_redirects_len';
+		$f->label = "Length of short link for ProcessRedirects (if present)";
+		$f->notes = "0 means don't generate a page name, non zero means generate one.";
+        $f->value = (isset($data['ls_process_redirects_len'])) ? $data['ls_process_redirects_len'] : 0;
+        $inputfields->add($f);
+
+        return $inputfields; 
+	}
 }
 
