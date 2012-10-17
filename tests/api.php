@@ -5,8 +5,8 @@ $short1 = LinkShortener::addNewLink( $full, null );
 $short2 = LinkShortener::addNewLink( $full, 1138 );
 
 ?>
-<DOCTYPE HTML>
-<HTML>
+<!DOCTYPE HTML>
+<HTML LANG="en">
   <HEAD>
     <TITLE>Link Shortener API</TITLE>
   </HEAD>
