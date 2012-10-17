@@ -136,6 +136,76 @@ class LinkShortener extends WireData implements Module
 
 
 	/**
+	 * Adds a new short link to the given full link.
+	 *
+	 * param $full_url     string          The url you wish to generate a short link to.
+	 * param $parent_id    string/int/null If a string, this is the id of the parent bin to put the shortlink in
+	 * param $short_url    string/null     If a string, use as the short link, don't generate a random string
+	 *
+	 * return string                       The short url
+	 * throws WireException                On parameter errors or failure to locate parent bin or adding link creates duplicate page
+	 **/
+	public static function addNewLink( $full_url, $parent_id = null, $short_url = null )
+	{
+		if( !is_string($full_url) || empty($full_url) )
+			 throw new WireException('$full_url must be a non-empty string.');
+
+		// Determine the parent bin...
+		$parents = wire()->pages->find('template=' . __CLASS__ . 'Home, include=all');
+
+		if( 0 == count($parents) )
+			throw new WireException('No short-url holding bins found');
+
+		if( 1 == count($parents) ) {
+			// Only one possible parent so use it...
+			$parent = $parents->first();
+		}
+		else {
+			// Locate the correct parent or assign to first bin if that's not possible...
+			if(  !$parent_id )
+				$parent = $parents->first();
+			else {
+				$parent_id = (string)$parent_id;
+				$parent = $parents->get("id=$parent_id");
+				if ( !($parent instanceof Page))
+					throw new WireException("Could not locate bin '$parent_id' for short url.");
+			}
+		}
+
+		if( !is_string($short_url) || '' == $short_url ) {
+			// generate a new short_url name...
+			$len   = $parent->short_link_length;
+			$ext   = $parent->short_link_ext;
+			$tries = $parent->short_link_tries;
+
+			if (!$len) $len = 6;
+			if (!$tries) $tries = 16;
+			if (!isset($ext)) $ext = true;
+
+			$short_url = self::generateUnusedRandomPagename( $parent, $len, $ext, $tries );
+
+			if( '' == $short_url )
+			   throw new WireException('Failed to generate a random page name. Is the bin nearly full?');
+		}
+
+		if( $parent->child("name=$short_url, include=all")->id )
+			throw new WireException("Page '$short_url' already exists, cannot use this name");
+
+		// We have everything we need to add a short URL page...
+		$ls_template = wire()->templates->get(__CLASS__);
+		$page = new Page($ls_template);
+		$page->parent = $parent;
+		$page->title  = "";
+		$page->full_link = $full_url;
+		$page->name   = $short_url;
+		$page->save();
+
+		return $page->httpUrl;
+	}
+
+
+
+	/**
  	 * Installs new fields/fieldgroups/templates/template files used by this module
 	 */
 	public function ___install()
