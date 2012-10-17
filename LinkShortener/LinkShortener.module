@@ -440,14 +440,14 @@ class LinkShortener extends WireData implements Module, ConfigurableModule
 	public static function getModuleConfigInputfields(array $data)
 	{
 		$inputfields = new InputfieldWrapper();
-        $f = wire('modules')->get('InputfieldInteger');
-        $f->name = 'ls_process_redirects_len';
+		$f = wire('modules')->get('InputfieldInteger');
+		$f->name = 'ls_process_redirects_len';
 		$f->label = "Length of short link for ProcessRedirects (if present)";
 		$f->notes = "0 means don't generate a page name, non zero means generate one.";
-        $f->value = (isset($data['ls_process_redirects_len'])) ? $data['ls_process_redirects_len'] : 0;
-        $inputfields->add($f);
+		$f->value = (isset($data['ls_process_redirects_len'])) ? $data['ls_process_redirects_len'] : 0;
+		$inputfields->add($f);
 
-        return $inputfields; 
+		return $inputfields; 
 	}
 }
 
