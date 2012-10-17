@@ -13,7 +13,7 @@ $short2 = LinkShortener::addNewLink( $full, 1138 );
 
   <BODY>
 	<H1>Link Shortener API</H1>
-	<p>added <a href="<?= $short1 ?>">link</a> to <em><?= $full ?></em></p>
-	<p>added <a href="<?= $short2 ?>">link</a> to <em><?= $full ?></em></p>
+	<P>added <A HREF="<?= $short1 ?>">link</A> to <EM><?= $full ?></EM></P>
+	<P>added <A HREF="<?= $short2 ?>">link</A> to <EM><?= $full ?></EM></P>
   </BODY>
 </HTML>
