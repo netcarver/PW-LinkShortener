@@ -385,7 +385,6 @@ class LinkShortener extends WireData implements Module, ConfigurableModule
 	public function ___uninstall()
 	{
 		/* XXXX
-		YYYY */
 		$del = $this->pages->find("template=".__CLASS__."Home, include=all");
 		if (!empty($del)) {
 			foreach ($del as $p) {
@@ -434,6 +433,7 @@ class LinkShortener extends WireData implements Module, ConfigurableModule
 			$this->fields->delete( $f );
 			$this->message("Removed field: short_link_ext");
 		}
+		YYYY */
 	}
 
 
